@@ -1,2 +1,2 @@
-# AIDUX
-AI Driven User Experience
+# AIDCORE
+AI Driven Customer Operations & Realtime Engagement
