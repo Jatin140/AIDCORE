@@ -1,0 +1,64 @@
+# All the global config variable to be added here
+# Package Overview
+package_name: capstone_AIDCORE_g7
+
+# Data Files
+items_data_file: items.csv
+reviews_data_file: reviews.csv
+items_data_file_id: "9ff6862a518340aa85b39d1c169fc718"
+reviews_data_file_id: "0053fdd3b51946d999479a35101c93b3"
+
+pipeline_name: capstone_AIDCORE_g7
+pipeline_save_file: capstone_AIDCORE_g7_output
+
+features:      # final features to be use
+  - asin
+  - brand
+  - title_x
+  - rating_x
+  - totalReviews
+  - price
+  - originalPrice
+  - name
+  - rating_y
+  - date
+  - verified
+  - title_y
+  - body
+  - review_body_updated # generated from body+title_y
+  - sentiment # generated from sentiment_analysis HF model
+  - aspect_with_sentiment # generated OpenAI
+
+unused_fields:  # Features to drop before pipeline
+  - asin
+  - rating_x
+  - totalReviews
+  - price
+  - originalPrice
+  - rating_y
+  - title_y
+  - body
+  - review_body_updated # generated from body+title_y
+  - sentiment # generated from sentiment_analysis HF model
+  - aspect_with_sentiment # generated OpenAI
+
+# Features inside processing pipeline
+
+title_y: title_y
+body: body
+
+sentiment_mappings:
+  POSITIVE: 1
+  NEGATIVE: -1
+
+  
+# set train/test split
+test_size: 0.20
+
+# to set the random seed
+random_state: 42
+
+# alogrithm parameters for KNN,BERT etc
+x: NA
+y: NA
+z: NA
