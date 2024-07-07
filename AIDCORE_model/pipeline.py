@@ -4,7 +4,9 @@ import pandas as pd
 import yaml
 import re
 from clearml import Task, Dataset, Logger
+from clearml import PipelineDecorator
 
+@PipelineDecorator.component(return_values=["config"],cache=True)
 def load_config(file_path):
     with open(file_path, 'r') as stream:
         try:
@@ -13,10 +15,9 @@ def load_config(file_path):
         except yaml.YAMLError as exc:
             print(f"Error parsing YAML: {exc}")
 
-config_file = "config.yml"
-config = load_config(config_file)
 
-def load_dataset():
+@PipelineDecorator.component(return_values=["items_df","reviews_df"],cache=True)
+def load_dataset(config):
     items_dataset_path = Dataset.get(
             dataset_id=config["items_data_file_id"],  
             only_completed=True, 
@@ -34,6 +35,7 @@ def load_dataset():
 
     return items_df,reviews_df
 
+@PipelineDecorator.component(return_values=["df_tmp"],cache=True)
 def data_imputation(df):
     # get the copy of data
     df_tmp = df.copy()
@@ -64,38 +66,53 @@ def data_imputation(df):
     
     return df_tmp
 
-def data_cleaning(text):
-    op = re.sub("\\b[A-Z0-9]+-[A-Z0-9]+(-[A-Z0-9]+)?\\b"," ",text) # AA-BB12-ZZ kind of word, no meaning
-    op = re.sub("[^a-zA-Z]"," ",op) # All but alphabets
-    op = re.sub("\\b\w\\b"," ",op) # single char surrounded by space
-    op = re.sub("( )+"," ",op) # Merge multiple space to one space
-    return op
+# @PipelineDecorator.component(return_values=["text"],cache=True)
+# def text_cleaning(text):
+#     text = re.sub("\\b[A-Z0-9]+-[A-Z0-9]+(-[A-Z0-9]+)?\\b"," ",text) # AA-BB12-ZZ kind of word, no meaning
+#     text = re.sub("[^a-zA-Z]"," ",text) # All but alphabets
+#     text = re.sub("\\b\w\\b"," ",text) # single char surrounded by space
+#     text = re.sub("( )+"," ",text) # Merge multiple space to one space
+#     return text
 
+@PipelineDecorator.component(return_values=["df"],cache=True)
+def data_cleaning_and_updating_df(df,column=None):
+    def text_cleaning(text):
+        text = re.sub("\\b[A-Z0-9]+-[A-Z0-9]+(-[A-Z0-9]+)?\\b"," ",text) # AA-BB12-ZZ kind of word, no meaning
+        text = re.sub("[^a-zA-Z]"," ",text) # All but alphabets
+        text = re.sub("\\b\w\\b"," ",text) # single char surrounded by space
+        text = re.sub("( )+"," ",text) # Merge multiple space to one space
+        return text    
+    df[column] = df[column].apply(lambda x: text_cleaning(x))
+    # df[column] = df[column].apply(lambda x: x)
+    return df
 
-
+@PipelineDecorator.component(return_values=["merge_dataset"],cache=True)
 def merge_dataset(df1,df2):
     merge_dataset =pd.merge(df1,df2,on='asin',how='inner')
     return merge_dataset
 
+@PipelineDecorator.component(return_values=["df"],cache=True)
 def memory_saving(df):
     return df
 
 # Data Validation Low priority
 
-if __name__ == '__main__':
-    items,reviews = load_dataset()
-    
+@PipelineDecorator.pipeline(name="Pipeline Experiment",project="capstone_AIDCORE_g7",version="0.1")
+def main():
+    config_file = "config.yml"
+    config = load_config(config_file)
+    items,reviews = load_dataset(config)    
     items = data_imputation(items)
     reviews = data_imputation(reviews)
-    
-    items['title'] = items['title'].apply(lambda x: data_cleaning(x))
-    reviews['title'] = reviews['title'].apply(lambda x: data_cleaning(x))
-    reviews['body'] = reviews['body'].apply(lambda x: data_cleaning(x))
-    
+    # _ = text_cleaning("Pass")
+    items = data_cleaning_and_updating_df(items,"title")
+    reviews = data_cleaning_and_updating_df(reviews,"title")
+    reviews = data_cleaning_and_updating_df(reviews,"body")
+
     merged_df = merge_dataset(items, reviews)
     # print(merged_df.shape)
     # print(merged_df.head(2))
-    # memory_saving(merged_df)
+    memory_saving(merged_df)
     # task = Task.init(project_name="Product Dynamics & overall Sentiment Analysis", task_name="Data Cleaning and Merging")
     # task.upload_data(merged_df, "merged_dataset.csv")
     # logger = Logger()
@@ -104,3 +121,9 @@ if __name__ == '__main__':
     # logger.end()
     # print("Data Cleaning and Merging completed successfully!")
     # print("Memory Usage:", merged_df.memory_usage().sum() / (1024 * 1024), "MB")
+    
+    return merged_df
+
+if __name__ == '__main__':
+    PipelineDecorator.run_locally()
+    main()
