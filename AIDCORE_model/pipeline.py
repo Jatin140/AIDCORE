@@ -29,7 +29,8 @@ def load_dataset(config):
             only_completed=True, 
             only_published=False, 
     ).get_local_copy()
-
+    print(items_dataset_path)
+    print(reviews_dataset_path)
     items_df = pd.read_csv(items_dataset_path+"/"+config["items_data_file"])
     reviews_df = pd.read_csv(reviews_dataset_path+"/"+config["reviews_data_file"])
 
@@ -110,8 +111,8 @@ def main():
     reviews = data_cleaning_and_updating_df(reviews,"body")
 
     merged_df = merge_dataset(items, reviews)
-    # print(merged_df.shape)
-    # print(merged_df.head(2))
+    print(merged_df.shape)
+    print(merged_df.head(2))
     memory_saving(merged_df)
     # task = Task.init(project_name="Product Dynamics & overall Sentiment Analysis", task_name="Data Cleaning and Merging")
     # task.upload_data(merged_df, "merged_dataset.csv")
