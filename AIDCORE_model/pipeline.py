@@ -122,7 +122,6 @@ def memory_saving(df):
     logger.report_text("Optimizing memory occupied by data...")    
 
     # Downgrade integer columns
-    df.drop(["Unnamed: 0"],axis=1,inplace=True)
     for col in df.select_dtypes(include=['int64']).columns:
         min_val, max_val = df[col].min(), df[col].max()
         if np.iinfo(np.int8).min <= min_val <= np.iinfo(np.int8).max and np.iinfo(np.int8).min <= max_val <= np.iinfo(np.int8).max:
