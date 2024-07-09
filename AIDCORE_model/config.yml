@@ -6,7 +6,7 @@ package_name: capstone_AIDCORE_g7
 items_data_file: items.csv
 reviews_data_file: reviews.csv
 items_data_file_id: "9ff6862a518340aa85b39d1c169fc718"
-reviews_data_file_id: "052cd13041a44c83a363f16a7fcf09c8"
+reviews_data_file_id: "83dbbfd3579f4f86836fa1e3e5c3f360"
 
 pipeline_name: capstone_AIDCORE_g7
 pipeline_save_file: capstone_AIDCORE_g7_output

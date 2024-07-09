@@ -21,13 +21,15 @@ def load_dataset(config):
     items_dataset_path = Dataset.get(
             dataset_id=config["items_data_file_id"],  
             only_completed=True, 
-            only_published=False, 
+            only_published=False,
+            alias='latest', 
     ).get_local_copy()
 
     reviews_dataset_path = Dataset.get(
             dataset_id=config["reviews_data_file_id"],  
             only_completed=True, 
             only_published=False, 
+            alias='latest',
     ).get_local_copy()
     print(items_dataset_path)
     print(reviews_dataset_path)
