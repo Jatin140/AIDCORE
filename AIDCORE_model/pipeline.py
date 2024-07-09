@@ -134,7 +134,7 @@ def memory_saving(df):
         min_val, max_val = df[col].min(), df[col].max()
         if np.finfo(np.float32).min <= min_val <= np.finfo(np.float32).max and np.finfo(np.float32).min <= max_val <= np.finfo(np.float32).max:
             df[col] = df[col].astype(np.float32)
-    
+
     return df
 
 @PipelineDecorator.pipeline(name="Pipeline Experiment",project="capstone_AIDCORE_g7",version="0.1")
@@ -147,11 +147,11 @@ def main():
     items = data_cleaning_and_updating_df(items,"title")
     reviews = data_cleaning_and_updating_df(reviews,"title")
     reviews = data_cleaning_and_updating_df(reviews,"body")
-
     merged_df = merge_dataset(items, reviews)
     print(merged_df.shape)
     print(merged_df.head(2))
-    memory_saving(merged_df)
+    memory_optimized_data = memory_saving(merged_df)
+    memory_optimized_data.to_csv("./memory_optimized_file.csv")
 
     # task = Task.init(project_name="Product Dynamics & overall Sentiment Analysis", task_name="Data Cleaning and Merging")
     # task.upload_data(merged_df, "merged_dataset.csv")
