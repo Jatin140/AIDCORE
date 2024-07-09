@@ -4,10 +4,14 @@ import pandas as pd
 import yaml
 import re
 from clearml import Task, Dataset, Logger
-from clearml import PipelineDecorator
+from clearml import PipelineDecorator, PipelineController
+
 
 @PipelineDecorator.component(return_values=["config"],cache=False)
 def load_config(file_path):
+    logger = PipelineController.get_logger()
+    logger.report_text("Loading config...")
+
     with open(file_path, 'r') as stream:
         try:
             config = yaml.safe_load(stream)
@@ -18,6 +22,9 @@ def load_config(file_path):
 
 @PipelineDecorator.component(return_values=["items_df","reviews_df"],cache=False)
 def load_dataset(config):
+    logger = PipelineController.get_logger()
+    logger.report_text("Loading items.csv...")
+
     items_dataset_path = Dataset.get(
             dataset_id=config["items_data_file_id"],
             only_completed=True, 
@@ -25,6 +32,7 @@ def load_dataset(config):
             alias='latest', 
     ).get_local_copy()
 
+    logger.report_text("Loading reviws.csv...")
     reviews_dataset_path = Dataset.get(
             dataset_id=config["reviews_data_file_id"],
             only_completed=True,
@@ -40,6 +48,8 @@ def load_dataset(config):
 
 @PipelineDecorator.component(return_values=["df_tmp"],cache=False)
 def data_imputation(df):
+    logger = PipelineController.get_logger()
+    logger.report_text("Data Imputation...")    
     # get the copy of data
     df_tmp = df.copy()
 
@@ -79,6 +89,8 @@ def data_imputation(df):
 
 @PipelineDecorator.component(return_values=["df"],cache=False)
 def data_cleaning_and_updating_df(df,column=None):
+    logger = PipelineController.get_logger()
+    logger.report_text("Data Cleaning...")    
     def text_cleaning(text):
         text = re.sub("\\b[A-Z0-9]+-[A-Z0-9]+(-[A-Z0-9]+)?\\b"," ",text) # AA-BB12-ZZ kind of word, no meaning
         text = re.sub("[^a-zA-Z]"," ",text) # All but alphabets
@@ -91,16 +103,40 @@ def data_cleaning_and_updating_df(df,column=None):
 
 @PipelineDecorator.component(return_values=["merge_dataset"],cache=False)
 def merge_dataset(df1,df2):
+    logger = PipelineController.get_logger()
+    logger.report_text("Merging Dataset...")    
+
     merge_dataset =pd.merge(df1,df2,on='asin',how='inner')
     merge_dataset.drop(["helpfulVotes"],axis=1,inplace=True)
     merge_dataset.dropna(inplace=True)
+    print(merge_dataset.shape)
     return merge_dataset
 
 @PipelineDecorator.component(return_values=["df"],cache=False)
 def memory_saving(df):
-    return df
+    """
+    Downgrade integer and float columns in a DataFrame to the smallest possible type
+    based on the range of values in each column.
+    """
+    logger = PipelineController.get_logger()
+    logger.report_text("Optimizing memory occupied by data...")    
 
-# Data Validation Low priority
+    # Downgrade integer columns
+    df.drop(["Unnamed: 0"],axis=1,inplace=True)
+    for col in df.select_dtypes(include=['int64']).columns:
+        min_val, max_val = df[col].min(), df[col].max()
+        if np.iinfo(np.int8).min <= min_val <= np.iinfo(np.int8).max and np.iinfo(np.int8).min <= max_val <= np.iinfo(np.int8).max:
+            df[col] = df[col].astype(np.int8)
+        elif np.iinfo(np.int16).min <= min_val <= np.iinfo(np.int16).max and np.iinfo(np.int16).min <= max_val <= np.iinfo(np.int16).max:
+            df[col] = df[col].astype(np.int16)
+    
+    # Downgrade float columns
+    for col in df.select_dtypes(include=['float64']).columns:
+        min_val, max_val = df[col].min(), df[col].max()
+        if np.finfo(np.float32).min <= min_val <= np.finfo(np.float32).max and np.finfo(np.float32).min <= max_val <= np.finfo(np.float32).max:
+            df[col] = df[col].astype(np.float32)
+    
+    return df
 
 @PipelineDecorator.pipeline(name="Pipeline Experiment",project="capstone_AIDCORE_g7",version="0.1")
 def main():
