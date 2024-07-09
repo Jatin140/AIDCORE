@@ -19,16 +19,16 @@ def load_config(file_path):
 @PipelineDecorator.component(return_values=["items_df","reviews_df"],cache=True)
 def load_dataset(config):
     items_dataset_path = Dataset.get(
-            dataset_id=config["items_data_file_id"],  
+            dataset_id=config["items_data_file_id"],
             only_completed=True, 
             only_published=False,
             alias='latest', 
     ).get_local_copy()
 
     reviews_dataset_path = Dataset.get(
-            dataset_id=config["reviews_data_file_id"],  
-            only_completed=True, 
-            only_published=False, 
+            dataset_id=config["reviews_data_file_id"],
+            only_completed=True,
+            only_published=False,
             alias='latest',
     ).get_local_copy()
     print(items_dataset_path)
@@ -107,7 +107,6 @@ def main():
     items,reviews = load_dataset(config)    
     items = data_imputation(items)
     reviews = data_imputation(reviews)
-    # _ = text_cleaning("Pass")
     items = data_cleaning_and_updating_df(items,"title")
     reviews = data_cleaning_and_updating_df(reviews,"title")
     reviews = data_cleaning_and_updating_df(reviews,"body")
@@ -116,6 +115,7 @@ def main():
     print(merged_df.shape)
     print(merged_df.head(2))
     memory_saving(merged_df)
+
     # task = Task.init(project_name="Product Dynamics & overall Sentiment Analysis", task_name="Data Cleaning and Merging")
     # task.upload_data(merged_df, "merged_dataset.csv")
     # logger = Logger()
@@ -125,7 +125,6 @@ def main():
     # print("Data Cleaning and Merging completed successfully!")
     # print("Memory Usage:", merged_df.memory_usage().sum() / (1024 * 1024), "MB")
     
-    return merged_df
 
 if __name__ == '__main__':
     PipelineDecorator.run_locally()

@@ -1,6 +1,7 @@
 # All the global config variable to be added here
 # Package Overview
 package_name: capstone_AIDCORE_g7
+project_name: capstone_AIDCORE_g7
 
 # Data Files
 items_data_file: items.csv
