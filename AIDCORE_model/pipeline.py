@@ -6,7 +6,7 @@ import re
 from clearml import Task, Dataset, Logger
 from clearml import PipelineDecorator
 
-@PipelineDecorator.component(return_values=["config"],cache=True)
+@PipelineDecorator.component(return_values=["config"],cache=False)
 def load_config(file_path):
     with open(file_path, 'r') as stream:
         try:
@@ -16,7 +16,7 @@ def load_config(file_path):
             print(f"Error parsing YAML: {exc}")
 
 
-@PipelineDecorator.component(return_values=["items_df","reviews_df"],cache=True)
+@PipelineDecorator.component(return_values=["items_df","reviews_df"],cache=False)
 def load_dataset(config):
     items_dataset_path = Dataset.get(
             dataset_id=config["items_data_file_id"],
@@ -38,7 +38,7 @@ def load_dataset(config):
 
     return items_df,reviews_df
 
-@PipelineDecorator.component(return_values=["df_tmp"],cache=True)
+@PipelineDecorator.component(return_values=["df_tmp"],cache=False)
 def data_imputation(df):
     # get the copy of data
     df_tmp = df.copy()
@@ -69,7 +69,7 @@ def data_imputation(df):
     
     return df_tmp
 
-# @PipelineDecorator.component(return_values=["text"],cache=True)
+# @PipelineDecorator.component(return_values=["text"],cache=False)
 # def text_cleaning(text):
 #     text = re.sub("\\b[A-Z0-9]+-[A-Z0-9]+(-[A-Z0-9]+)?\\b"," ",text) # AA-BB12-ZZ kind of word, no meaning
 #     text = re.sub("[^a-zA-Z]"," ",text) # All but alphabets
@@ -77,7 +77,7 @@ def data_imputation(df):
 #     text = re.sub("( )+"," ",text) # Merge multiple space to one space
 #     return text
 
-@PipelineDecorator.component(return_values=["df"],cache=True)
+@PipelineDecorator.component(return_values=["df"],cache=False)
 def data_cleaning_and_updating_df(df,column=None):
     def text_cleaning(text):
         text = re.sub("\\b[A-Z0-9]+-[A-Z0-9]+(-[A-Z0-9]+)?\\b"," ",text) # AA-BB12-ZZ kind of word, no meaning
@@ -89,12 +89,12 @@ def data_cleaning_and_updating_df(df,column=None):
     # df[column] = df[column].apply(lambda x: x)
     return df
 
-@PipelineDecorator.component(return_values=["merge_dataset"],cache=True)
+@PipelineDecorator.component(return_values=["merge_dataset"],cache=False)
 def merge_dataset(df1,df2):
     merge_dataset =pd.merge(df1,df2,on='asin',how='inner')
     return merge_dataset
 
-@PipelineDecorator.component(return_values=["df"],cache=True)
+@PipelineDecorator.component(return_values=["df"],cache=False)
 def memory_saving(df):
     return df
 
