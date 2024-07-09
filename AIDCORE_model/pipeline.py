@@ -92,6 +92,8 @@ def data_cleaning_and_updating_df(df,column=None):
 @PipelineDecorator.component(return_values=["merge_dataset"],cache=False)
 def merge_dataset(df1,df2):
     merge_dataset =pd.merge(df1,df2,on='asin',how='inner')
+    merge_dataset.drop(["helpfulVotes"],axis=1,inplace=True)
+    merge_dataset.dropna(inplace=True)
     return merge_dataset
 
 @PipelineDecorator.component(return_values=["df"],cache=False)
