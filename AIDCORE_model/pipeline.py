@@ -5,6 +5,7 @@ import yaml
 import re
 from clearml import Task, Dataset, Logger
 from clearml import PipelineDecorator, PipelineController
+import predict
 
 
 @PipelineDecorator.component(return_values=["config"],cache=False)
@@ -139,6 +140,8 @@ def memory_saving(df):
 
 @PipelineDecorator.pipeline(name="Pipeline Experiment",project="capstone_AIDCORE_g7",version="0.1")
 def main():
+    logger = PipelineController.get_logger()
+
     config_file = "config.yml"
     config = load_config(config_file)
     items,reviews = load_dataset(config)    
@@ -152,6 +155,17 @@ def main():
     print(merged_df.head(2))
     memory_optimized_data = memory_saving(merged_df)
     memory_optimized_data.to_csv("./memory_optimized_file.csv")
+
+    # Predictions & Model evaluation
+    knn_df = predict.genrate_SentimentAspectFrom_KNN(memory_optimized_data)
+    bert_df = predict.genrate_SentimentAspectFrom_BERT(memory_optimized_data)
+    knn_metrics = predict.evaluate_KNN_model(knn_df)
+    bert_metrics = predict.evaluate_BERT_model(bert_df)
+    openai_metrics = "TBD"
+    final_metrics = predict.compare_all_models(openai_metrics,knn_metrics,bert_metrics)
+    logger.report_text("final_metrics is\n {}...".format(final_metrics))    
+    
+    # Serving model and launching streamlit app
 
     # task = Task.init(project_name="Product Dynamics & overall Sentiment Analysis", task_name="Data Cleaning and Merging")
     # task.upload_data(merged_df, "merged_dataset.csv")
