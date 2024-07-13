@@ -156,7 +156,7 @@ def launch_AIDCORE_app(df):
     logger.report_text("Please click here --> http://localhost:8501")        
 
     # Command to run the Streamlit app
-    command = ["streamlit", "run", "./AIDCORE_model_app/main_app.py"]
+    command = ["streamlit", "run", "../AIDCORE_model_app/main_app.py"]
 
     # Run the command using subprocess
     try:
