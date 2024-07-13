@@ -170,7 +170,7 @@ def launch_AIDCORE_app(df):
 def main():
     logger = PipelineController.get_logger()
 
-    config_file = "./AIDCORE_model/config.yml"
+    config_file = "./config.yml"
     config = load_config(config_file)
     items,reviews = load_dataset(config)    
     items = data_imputation(items)
