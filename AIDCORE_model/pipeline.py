@@ -10,7 +10,7 @@ import predict
 
 
 # Add the path of othe rmodules so that library can be imported
-sys.path.append('.')
+sys.path.append('../')
 
 from AIDCORE_model import *
 from AIDCORE_model_app.main_app import launch_app
