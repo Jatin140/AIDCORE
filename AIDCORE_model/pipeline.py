@@ -2,11 +2,19 @@
 import numpy as np
 import pandas as pd
 import yaml
-import re
+import re,sys
+import subprocess
 from clearml import Task, Dataset, Logger
 from clearml import PipelineDecorator, PipelineController
 import predict
 
+
+# Add the path of othe rmodules so that library can be imported
+sys.path.append('.')
+
+from AIDCORE_model import *
+from AIDCORE_model_app.main_app import launch_app
+from AIDCORE_utils.send_email import send_email_to_product_owner
 
 @PipelineDecorator.component(return_values=["config"],cache=False)
 def load_config(file_path):
@@ -138,11 +146,31 @@ def memory_saving(df):
 
     return df
 
+@PipelineDecorator.component(return_values=["None"],cache=False)
+def launch_AIDCORE_app(df):
+    """
+    TBD
+    """
+    logger = PipelineController.get_logger()
+    logger.report_text("Launching streamplit app...")    
+    logger.report_text("Please click here --> http://localhost:8501")        
+
+    # Command to run the Streamlit app
+    command = ["streamlit", "run", "./AIDCORE_model_app/main_app.py"]
+
+    # Run the command using subprocess
+    try:
+        subprocess.run(command, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error running Streamlit app: {e}")
+
+    return None
+
 @PipelineDecorator.pipeline(name="Pipeline Experiment",project="capstone_AIDCORE_g7",version="0.1")
 def main():
     logger = PipelineController.get_logger()
 
-    config_file = "config.yml"
+    config_file = "./AIDCORE_model/config.yml"
     config = load_config(config_file)
     items,reviews = load_dataset(config)    
     items = data_imputation(items)
@@ -165,8 +193,12 @@ def main():
     final_metrics = predict.compare_all_models(openai_metrics,knn_metrics,bert_metrics)
     logger.report_text("final_metrics is\n {}...".format(final_metrics))    
     
-    # Serving model and launching streamlit app
+    # Serving model using app and launching streamlit app
+    launch_AIDCORE_app(final_metrics)
 
+    # Send an email to product owner in case any negative reviews logged in by user -->TBD
+    send_email_to_product_owner("Hello AIDCORE product owner...")
+    
     # task = Task.init(project_name="Product Dynamics & overall Sentiment Analysis", task_name="Data Cleaning and Merging")
     # task.upload_data(merged_df, "merged_dataset.csv")
     # logger = Logger()
