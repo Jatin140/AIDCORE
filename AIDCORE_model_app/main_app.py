@@ -15,7 +15,13 @@ import numpy as np
 
 
 # Set your OpenAI API key
-openai.api_key = input("Please enter your openAI key... ")
+with open("../AIDCORE_model_app/openkey.txt") as fh:
+    KEY = fh.read()
+
+# openaikey = "??"
+# client = OpenAI(api_key=oaikey)
+
+openai.api_key = "?"
 client = OpenAI(api_key=openai.api_key)
 
 user_dict = {
@@ -68,16 +74,16 @@ def gen_prompt(user_status):
             requirement: {user_status["requirements"]}
             """
 
-def generate_email_prompt(user_status):
+def generate_email_prompt(user_status,client):
     response = client.chat.completions.create(model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": gen_prompt(user_status)}
     ])
     return response.choices[0].message.content
 
-def generate_email_content(user_id):
+def generate_email_content(user_id,client):
     user_status = get_user_status(user_id)
-    email = generate_email_prompt(user_status)
+    email = generate_email_prompt(user_status,client)
     return email
 
 # Columns for sentiment analysis
@@ -142,7 +148,7 @@ def find_best_match(query, data):
     print(data.iloc[top_indices])
     return data.iloc[top_indices]
 
-def generate_response(conversation):
+def generate_response(conversation,client):
     response = client.chat.completions.create(model="gpt-4",
     messages=conversation,
     max_tokens=800,
@@ -213,7 +219,7 @@ def start_conversation():
     conversation = [{"role": "system", "content": system_message}]
     return conversation
 
-def purchase_page():
+def purchase_page(client):
     st.title("Product Specifications Viewer")
     st.subheader("Chat with our assistant")
 
@@ -224,7 +230,7 @@ def purchase_page():
 
     if user_input:
         st.session_state.conversation.append({"role": "user", "content": user_input})
-        response = generate_response(st.session_state.conversation)             
+        response = generate_response(st.session_state.conversation,client)             
         st.session_state.conversation.append({"role": "assistant", "content": response})
 
     for msg in st.session_state.conversation:
@@ -417,7 +423,7 @@ def product_analysis_page():
             plt.title("Cluster Visualization based on Positive and Negative Feedback (Brand Level)")
             st.pyplot(plt)
 
-def campaign_management():
+def campaign_management(client):
     st.title("Campaign Management")
     st.subheader("Generate Emails for Users")
 
@@ -430,7 +436,7 @@ def campaign_management():
     st.write(f"Requirements: {selected_user_status['requirements']}")
 
     if st.button("Generate Email"):
-        email_content = generate_email_content(selected_user_id)
+        email_content = generate_email_content(selected_user_id,client)
         st.subheader("Generated Email")
         st.write(email_content)
 
@@ -439,12 +445,18 @@ def launch_app():
     st.set_option('deprecation.showPyplotGlobalUse', False)
     page = st.sidebar.selectbox("Select a page", ["Review Based Product Selection", "Product Analysis", "Campaign Management"])
 
+    var_key = st.text_input("Enter the openAI key... ",type="password")
+    client = OpenAI(api_key=var_key)
+
+    with open("openAi.key.txt","w") as fh:
+        fh.write(var_key)
+
     if page == "Review Based Product Selection":
-        purchase_page()
+        purchase_page(client)
     elif page == "Product Analysis":
         product_analysis_page()
     elif page == "Campaign Management":
-        campaign_management()
+        campaign_management(client)
 
 if __name__ == "__main__":
     launch_app()
