@@ -13,17 +13,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import numpy as np
 
-
-# Set your OpenAI API key
-with open("../AIDCORE_model_app/openkey.txt") as fh:
-    KEY = fh.read()
-
-# openaikey = "??"
-# client = OpenAI(api_key=oaikey)
-
-openai.api_key = "?"
-client = OpenAI(api_key=openai.api_key)
-
 user_dict = {
     '1': {"username": "Pankaj", "status": "did_not_buy", "requirements": "good camera"},
     '2': {"username": "Jyotirmoy", "status": "did_not_buy", "requirements": "sleek phone"},
