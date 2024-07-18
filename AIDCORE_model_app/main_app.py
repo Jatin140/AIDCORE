@@ -13,6 +13,7 @@ import re
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import numpy as np
+import langchain_rag_module as lagrag
 
 user_dict = {
     '1': {"username": "Pankaj", "status": "did_not_buy", "requirements": "good camera"},
@@ -453,7 +454,7 @@ def exit_app():
 def launch_app():
     st.sidebar.title("Navigation")
     st.set_option('deprecation.showPyplotGlobalUse', False)
-    page = st.sidebar.selectbox("Select a page", ["Review Based Product Selection", "Product Analysis", "Campaign Management"])
+    page = st.sidebar.selectbox("Select a page", ["Review Based Product Selection", "Product Analysis", "Campaign Management","Customer_Outreach"])
 
     var_key = st.text_input("Enter the openAI key... ",type="password")
     client = OpenAI(api_key=var_key)
@@ -467,7 +468,8 @@ def launch_app():
         product_analysis_page()
     elif page == "Campaign Management":
         campaign_management(client)
-
+    elif page == "Customer_Outreach":
+        lagrag.launch_langchain_rag(var_key)
     if st.button('Exit'):
         st.write("Exiting the app...")
         exit_app()

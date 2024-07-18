@@ -3,3 +3,9 @@ pandas
 pyyaml
 streamlit
 clearml
+openai==1.35.7
+langchain
+PyPDF2
+chromadb
+faiss-cpu
+tiktoken
