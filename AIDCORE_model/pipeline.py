@@ -191,21 +191,18 @@ def main():
     openai_metrics = "TBD"
     final_metrics = predict.compare_all_models(openai_metrics,knn_metrics,bert_metrics)
     logger.report_text("final_metrics is\n {}...".format(final_metrics))    
-    
+
+    logger.report_scalar(title="Memory Usage",value=merged_df.memory_usage().sum() / (1024 * 1024))
+    logger.report_table(title="Data Summary", table_plot=merged_df.describe())
+    logger.end()
+    print("Data Cleaning and Merging completed successfully!")
+    print("Memory Usage:", merged_df.memory_usage().sum() / (1024 * 1024), "MB")
+
     # Serving model using app and launching streamlit app
     launch_AIDCORE_app(final_metrics)
 
     # Send an email to product owner in case any negative reviews logged in by user -->TBD
     send_email_to_product_owner("Hello AIDCORE product owner...")
-    
-    # task = Task.init(project_name="Product Dynamics & overall Sentiment Analysis", task_name="Data Cleaning and Merging")
-    # task.upload_data(merged_df, "merged_dataset.csv")
-    # logger = Logger()
-    # logger.report_scalar("Memory Usage", merged_df.memory_usage().sum() / (1024 * 1024))
-    # logger.report_table("Data Summary", merged_df.describe())
-    # logger.end()
-    # print("Data Cleaning and Merging completed successfully!")
-    # print("Memory Usage:", merged_df.memory_usage().sum() / (1024 * 1024), "MB")
     
 
 if __name__ == '__main__':
