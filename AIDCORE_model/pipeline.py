@@ -231,10 +231,10 @@ def main():
     review_feedback = launch_AIDCORE_app(final_metrics)
     
     updated_dataset = add_latestFeedback_to_main_data(reviews_main,None)
-    update_DataSet_to_Server(updated_dataset)
+    _ = update_DataSet_to_Server(updated_dataset)
     
     # Send an email to product owner in case any negative reviews logged in by user -->TBD
-    send_email_to_product_owner(None)
+    send_email_to_product_owner(_)
     
 
 if __name__ == '__main__':
