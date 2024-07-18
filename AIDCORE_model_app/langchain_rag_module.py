@@ -2,7 +2,6 @@ import re
 import time
 from io import BytesIO
 from typing import Any, Dict, List
-
 import openai
 import streamlit as st
 from PyPDF2 import PdfReader

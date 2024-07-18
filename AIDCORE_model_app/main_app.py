@@ -1,6 +1,6 @@
 from clearml import PipelineDecorator, PipelineController
 import streamlit as st
-import os
+import os, sys
 import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,7 +13,10 @@ import re
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import numpy as np
-import langchain_rag_module as lagrag
+
+# Add the path of othe rmodules so that library can be imported
+sys.path.append('../')
+from AIDCORE_model_app import langchain_rag_module as lagrag
 
 user_dict = {
     '1': {"username": "Pankaj", "status": "did_not_buy", "requirements": "good camera"},
