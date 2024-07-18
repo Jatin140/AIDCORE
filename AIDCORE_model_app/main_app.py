@@ -20,6 +20,8 @@ user_dict = {
     '4': {"username": "Puja", "status": "did_not_like", "requirements": "Display"}
 }
 
+logger = PipelineController.get_logger()
+
 def get_user_status(user_id):
     return user_dict.get(user_id, {"username": "User", "status": "unknown", "requirements": "general"})
 
@@ -169,6 +171,7 @@ def plot_row(df, prod_num):
     ax.set_title(f'Asin: {prod_num[0]}')
     ax.set_xlabel('Aspects')
     ax.set_ylabel('Scores')
+    logger.report_matplotlib_figure(title="Asin+Aspect+Score",series="Asin+Aspect+Score",figure=fig,report_image=True)
     return fig
 
 def plot_overall(df, asins):
@@ -178,6 +181,7 @@ def plot_overall(df, asins):
     df.plot(kind='barh', ax=ax)
     ax.set_title(f'Overall Review Comparison')
     ax.set_xlabel('Percentage Reviewed')
+    logger.report_matplotlib_figure(title="Overall Review Comparison",series="Overall Review Comparison",figure=fig,report_image=True)
     return fig
 
 def start_conversation():
@@ -246,11 +250,12 @@ def purchase_page(client):
                 st.dataframe(matched_products[['asin', 'title', 'brand', 'price', 'rating']])
 
                 st.write("Price vs Rating")
-                plt.figure(figsize=(6, 4))
+                fig, ax = plt.subplots(figsize=(10, 4))
                 plt.scatter(matched_products['price'], matched_products['rating'], alpha=0.7, color='red')
                 plt.xlabel('Price')
                 plt.ylabel('Rating')
                 plt.title('Price vs Rating')
+                logger.report_matplotlib_figure(title="Price vs Rating",series="Best match products",figure=fig,report_image=True)
                 st.pyplot(plt)
 
                 asins = matched_products['asin'].tolist()
@@ -338,9 +343,10 @@ def product_analysis_page():
     if analysis_type == 'Trend Analysis':
         for aspect in aspect_list:
             st.subheader(f'Trend Analysis of {aspect} ({trend_period})')
-            plt.figure(figsize=(10, 4))
+            fig, ax = plt.subplots(figsize=(10, 4))
             sns.lineplot(data=aggregated_data_products, x='period', y=aspect, hue='asin', marker='o')
             sns.lineplot(data=aggregated_data_brands, x='period', y=aspect, hue='brand', marker='x', linestyle='--')
+            logger.report_matplotlib_figure(title="aggregated_data_products+brands",series="Trend Analysis",figure=fig,report_image=True)
             plt.xticks(rotation=45)
             plt.tight_layout()
             st.pyplot(plt)
@@ -350,7 +356,9 @@ def product_analysis_page():
         aspects_heat = aspect_list.copy()
         aspects_heat.extend(['overall postive feedback', 'overall negative feedback', 'rating'])
         corr_data = filtered_data_products[aspects_heat].corr()
+        fig, ax = plt.subplots(figsize=(10, 4))
         sns.heatmap(corr_data, annot=True, cmap='coolwarm')
+        logger.report_matplotlib_figure(title="Heatmap Analysis Across Aspects",series="Heatmap Analysis",figure=fig,report_image=True)
         st.pyplot()
 
     elif analysis_type == 'Cluster Analysis':
@@ -381,8 +389,9 @@ def product_analysis_page():
                 st.write(f"Cluster {cluster}: {', '.join(aspects)}")
 
             st.subheader("Cluster Visualization (Product Level)")
-            plt.figure(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=(10, 4))
             sns.scatterplot(x='overall postive feedback', y='overall negative feedback', hue='Cluster', data=filtered_data_products, palette='viridis')
+            logger.report_matplotlib_figure(title="Cluster Visualization based on Positive and Negative Feedback (Product Level)",series="Cluster Visualization",figure=fig,report_image=True)
             plt.title("Cluster Visualization based on Positive and Negative Feedback (Product Level)")
             st.pyplot(plt)
 
@@ -407,9 +416,10 @@ def product_analysis_page():
                 st.write(f"Cluster {cluster}: {', '.join(aspects)}")
 
             st.subheader("Cluster Visualization (Brand Level)")
-            plt.figure(figsize=(10, 6))
+            fig, ax = plt.subplots(figsize=(10, 4))
             sns.scatterplot(x='overall postive feedback', y='overall negative feedback', hue='Cluster', data=filtered_data_brands, palette='viridis')
             plt.title("Cluster Visualization based on Positive and Negative Feedback (Brand Level)")
+            logger.report_matplotlib_figure(title="Cluster Visualization based on Positive and Negative Feedback (Brand Level)",series="Cluster Visualization",figure=fig,report_image=True)
             st.pyplot(plt)
 
 def campaign_management(client):
