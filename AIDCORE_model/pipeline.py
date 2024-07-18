@@ -192,9 +192,10 @@ def main():
     final_metrics = predict.compare_all_models(openai_metrics,knn_metrics,bert_metrics)
     logger.report_text("final_metrics is\n {}...".format(final_metrics))    
 
-    logger.report_scalar(title="Memory Usage",value=merged_df.memory_usage().sum() / (1024 * 1024))
-    logger.report_table(title="Data Summary", table_plot=merged_df.describe())
-    logger.end()
+    scalar_series = np.random.randint(0,10)
+
+    logger.report_scalar(title="Memory Usage",series="series",iteration=scalar_series,value=merged_df.memory_usage().sum() / (1024 * 1024))
+    logger.report_table(title="Data Summary",series="series",iteration=scalar_series,table_plot=merged_df.describe())
     print("Data Cleaning and Merging completed successfully!")
     print("Memory Usage:", merged_df.memory_usage().sum() / (1024 * 1024), "MB")
 
