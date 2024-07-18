@@ -1,5 +1,6 @@
 from clearml import PipelineDecorator, PipelineController
 import streamlit as st
+import os
 import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -457,6 +458,9 @@ def launch_app():
     elif page == "Campaign Management":
         campaign_management(client)
 
+    if st.button('Exit'):
+        st.write("Exiting application...")
+    
 if __name__ == "__main__":
     launch_app()
 

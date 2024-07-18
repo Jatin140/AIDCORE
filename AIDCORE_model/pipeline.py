@@ -200,7 +200,7 @@ def main():
     print("Memory Usage:", merged_df.memory_usage().sum() / (1024 * 1024), "MB")
 
     # Serving model using app and launching streamlit app
-    launch_AIDCORE_app(final_metrics)
+    _ = launch_AIDCORE_app(final_metrics)
 
     # Send an email to product owner in case any negative reviews logged in by user -->TBD
     send_email_to_product_owner("Hello AIDCORE product owner...")
