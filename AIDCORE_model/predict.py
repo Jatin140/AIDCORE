@@ -57,4 +57,6 @@ def compare_all_models(openai_metrics,knn_metrics,bert_metrics):
     logger.report_text("Compare all models and report final statistics...")    
 
     final_metrics = "TBD" 
+    
     return final_metrics
+

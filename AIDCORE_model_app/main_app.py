@@ -440,6 +440,16 @@ def campaign_management(client):
         st.subheader("Generated Email")
         st.write(email_content)
 
+def exit_app():
+    st.write("Exiting the app...")
+    if hasattr(st, 'scriptrunner'):
+        raise st.scriptrunner.script_runner.RerunException(st.scriptrunner.script_requests.RerunData(None))
+    else:
+        raise st.runtime.scriptrunner.script_runner.RerunException(
+        st.runtime.scriptrunner.script_requests.RerunData("") 
+    )
+
+
 def launch_app():
     st.sidebar.title("Navigation")
     st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -459,7 +469,9 @@ def launch_app():
         campaign_management(client)
 
     if st.button('Exit'):
-        st.write("Exiting application...")
+        st.write("Exiting the app...")
+        exit_app()
+        
     
 if __name__ == "__main__":
     launch_app()

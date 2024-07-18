@@ -4,6 +4,7 @@ import pandas as pd
 import yaml
 import re,sys
 import subprocess
+import traceback
 from clearml import Task, Dataset, Logger
 from clearml import PipelineDecorator, PipelineController
 import predict
@@ -148,20 +149,47 @@ def memory_saving(df):
 @PipelineDecorator.component(return_values=["None"],cache=False)
 def launch_AIDCORE_app(df):
     """
+    Launches the AIDCORE Streamlit app.
+    """
+    command = ["streamlit", "run", "../AIDCORE_model_app/main_app.py"]
+
+    # # Run the command using subprocess.Popen for better control
+    process = subprocess.Popen(command)
+
+    try:
+        process.wait()  # Wait for the subprocess to complete
+        return_code = process.returncode
+        if return_code == 0:
+            print("Streamlit app exited successfully.")
+        else:
+            print(f"Streamlit app exited with return code {return_code}.")
+        return return_code  # Return the return code of the subprocess
+    except KeyboardInterrupt:
+        print("\nStreamlit app interrupted by user. Exiting gracefully...")
+        process.terminate()  # Terminate the subprocess
+        return 0  # Exit with return code 0
+    except Exception as e:
+        print(f"Error running Streamlit app: {e}")
+        traceback.print_exc()
+        return 1  # Return 1 to indicate an error
+
+@PipelineDecorator.component(return_values=["None"],cache=False)
+def add_latestFeedback_to_main_data(review_feedback,main_data):
+    """
     TBD
     """
     logger = PipelineController.get_logger()
-    logger.report_text("Launching streamplit app...")    
-    logger.report_text("Please click here --> http://localhost:8501")        
+    logger.report_text("Adding latest review feedback to Original dataset...")  
 
-    # Command to run the Streamlit app
-    command = ["streamlit", "run", "../AIDCORE_model_app/main_app.py"]
+    return None
 
-    # Run the command using subprocess
-    try:
-        subprocess.run(command, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error running Streamlit app: {e}")
+@PipelineDecorator.component(return_values=["None"],cache=False)
+def update_DataSet_to_Server(updated_dataset):
+    """
+    TBD
+    """
+    logger = PipelineController.get_logger()
+    logger.report_text("Updating Original dataset in Server...")  
 
     return None
 
@@ -171,9 +199,9 @@ def main():
 
     config_file = "./config.yml"
     config = load_config(config_file)
-    items,reviews = load_dataset(config)    
+    items,reviews_main = load_dataset(config)    
     items = data_imputation(items)
-    reviews = data_imputation(reviews)
+    reviews = data_imputation(reviews_main)
     items = data_cleaning_and_updating_df(items,"title")
     reviews = data_cleaning_and_updating_df(reviews,"title")
     reviews = data_cleaning_and_updating_df(reviews,"body")
@@ -200,10 +228,13 @@ def main():
     print("Memory Usage:", merged_df.memory_usage().sum() / (1024 * 1024), "MB")
 
     # Serving model using app and launching streamlit app
-    _ = launch_AIDCORE_app(final_metrics)
-
+    review_feedback = launch_AIDCORE_app(final_metrics)
+    
+    updated_dataset = add_latestFeedback_to_main_data(reviews_main,None)
+    update_DataSet_to_Server(updated_dataset)
+    
     # Send an email to product owner in case any negative reviews logged in by user -->TBD
-    send_email_to_product_owner("Hello AIDCORE product owner...")
+    send_email_to_product_owner(None)
     
 
 if __name__ == '__main__':
