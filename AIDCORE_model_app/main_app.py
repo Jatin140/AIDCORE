@@ -10,6 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import openai
 from openai import OpenAI
 import re
+import signal
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 import numpy as np
@@ -445,13 +446,9 @@ def campaign_management(client):
         st.write(email_content)
 
 def exit_app():
-    st.write("Exiting the app...")
-    if hasattr(st, 'scriptrunner'):
-        raise st.scriptrunner.script_runner.RerunException(st.scriptrunner.script_requests.RerunData(None))
-    else:
-        raise st.runtime.scriptrunner.script_runner.RerunException(
-        st.runtime.scriptrunner.script_requests.RerunData("") 
-    )
+    st.warning("The app will now close.")
+    print(os.getpid())
+    os.kill(os.getpid(), signal.SIGTERM)
 
 
 def launch_app():
@@ -476,7 +473,7 @@ def launch_app():
     if st.button('Exit'):
         st.write("Exiting the app...")
         exit_app()
-        
+            
     
 if __name__ == "__main__":
     launch_app()

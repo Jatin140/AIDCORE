@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import yaml
+import time
 import re,sys
 import subprocess
 import traceback
@@ -157,21 +158,21 @@ def launch_AIDCORE_app(df):
     process = subprocess.Popen(command)
 
     try:
-        process.wait()  # Wait for the subprocess to complete
-        return_code = process.returncode
-        if return_code == 0:
-            print("Streamlit app exited successfully.")
-        else:
-            print(f"Streamlit app exited with return code {return_code}.")
-        return return_code  # Return the return code of the subprocess
+        while True:
+            # Check if the Streamlit app process has exited
+            retcode = process.poll()
+            if retcode is not None:
+                # The Streamlit app has exited, break the loop
+                print(f"Streamlit app exited with code {retcode}")
+                break
+            # Keep the launcher script running to keep the app alive
+            time.sleep(1)     
     except KeyboardInterrupt:
         print("\nStreamlit app interrupted by user. Exiting gracefully...")
         process.terminate()  # Terminate the subprocess
-        return 0  # Exit with return code 0
-    except Exception as e:
-        print(f"Error running Streamlit app: {e}")
-        traceback.print_exc()
-        return 1  # Return 1 to indicate an error
+        process.wait()
+    
+    return retcode
 
 @PipelineDecorator.component(return_values=["None"],cache=False)
 def add_latestFeedback_to_main_data(review_feedback,main_data):
@@ -193,7 +194,7 @@ def update_DataSet_to_Server(updated_dataset):
 
     return None
 
-@PipelineDecorator.pipeline(name="Pipeline Experiment",project="capstone_AIDCORE_g7",version="0.1")
+@PipelineDecorator.pipeline(name="Pipeline Experiment",project="capstone_AIDCORE_g7",version="1.0")
 def main():
     logger = PipelineController.get_logger()
 
@@ -228,13 +229,16 @@ def main():
     print("Memory Usage:", merged_df.memory_usage().sum() / (1024 * 1024), "MB")
 
     # Serving model using app and launching streamlit app
-    review_feedback = launch_AIDCORE_app(final_metrics)
+    return_code = launch_AIDCORE_app(final_metrics)
     
-    updated_dataset = add_latestFeedback_to_main_data(reviews_main,None)
-    _ = update_DataSet_to_Server(updated_dataset)
+    if return_code == 0:
+        updated_dataset = add_latestFeedback_to_main_data(reviews_main,None)
+        _ = update_DataSet_to_Server(updated_dataset)
     
-    # Send an email to product owner in case any negative reviews logged in by user -->TBD
-    send_email_to_product_owner(_)
+        # Send an email to product owner in case any negative reviews logged in by user -->TBD
+        send_email_to_product_owner(_)
+        exit(return_code)
+
     
 
 if __name__ == '__main__':
